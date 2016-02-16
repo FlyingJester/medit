@@ -1,23 +1,24 @@
-MERCURY=mmc
-MFLAGS=-E --linkage static --mercury-linkage static
-ASM=yasm
-ASMFLAGS=
-ASMFLAGS=-f elf64
-LINK=gcc
+MERCURY?=mmc
+MFLAGS?=-E --linkage static --mercury-linkage static
+ASM?=yasm
+ASMFLAGS?=-f elf64
+CC?=gcc
+LINK?=gcc
+PLATFORM=
 
 all: segment medit_mercury
 
 medit_mercury: medit_algorithm.m medit_native.m string_pool.m
-	$(MERCURY) $(MFLAGS) --make libstring_pool 
+	$(MERCURY) $(MFLAGS) --make libstring_pool
 
 segment: segment.o test_segment.o
 	$(LINK) -o test_segment segment.o test_segment.o -lc
 
 segment.o: segment.s
-	$(ASM) $(ASMFLAGS) segment.s
+	$(ASM) $(ASMFLAGS) segment.s -o segment.o
 
 test_segment.o: test_segment.c segment.h
-	gcc -Os -c test_segment.c -o test_segment.o
+	$(CC) -Os -c test_segment.c -o test_segment.o
 
 clean:
 	rm *.o

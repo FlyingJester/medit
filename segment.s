@@ -1,3 +1,18 @@
+
+bits 64
+
+%if 1<>0
+  %define ARG1 rcx
+  %define ARG2 rdx
+  %define ARG3 r8
+  %define ARG4 r9
+%else
+  %define ARG1 rdi
+  %define ARG2 rsi
+  %define ARG3 rcx
+  %define ARG4 rdx
+%endif
+
 %define NUM_SEGMENT_LINES 32
 
 STRUC TextSegment
@@ -16,7 +31,7 @@ global SplitTextSegment
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 TextSegmentLineCount:
-  mov rax,[rcx+TextSegment.num]
+  mov rax,[ARG1+TextSegment.num]
   ret
 ;
 
@@ -28,43 +43,43 @@ TextSegmentStructSize:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 TextSegmentLine:
-  mov rax,rcx
+  mov rax,ARG1
   add rax,TextSegment.lines
-  shl rdx,3
-  add rax,rdx
+  shl ARG2,3
+  add rax,ARG2
   ret
 ;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 SplitTextSegment:
   ; Put S1's next into S2's next
-  mov rax,[rcx+TextSegment.next]
-  mov [rdx+TextSegment.next],rax
+  mov rax,[ARG1+TextSegment.next]
+  mov [ARG2+TextSegment.next],rax
 
   ; Set S1's next to S2
-  mov [rcx+TextSegment.next],rdx
+  mov [ARG1+TextSegment.next],ARG2
 
   ; Clear S2's line count
-  mov qword [rdx+TextSegment.num],0x0
+  mov qword [ARG2+TextSegment.num],0x0
 
   ; If there are more than 16 lines in S1, move all but 16 into S2.
-  mov rax,[rcx+TextSegment.num]
+  mov rax,[ARG1+TextSegment.num]
   cmp rax,16
   jle done_transferring
 
   ; rax is counter
   sub rax,16
-  mov [rdx+TextSegment.num],rax
+  mov [ARG2+TextSegment.num],rax
 
   ; Update the line counts
-  mov qword [rcx+TextSegment.num],0x0F
-  mov [rdx+TextSegment.num],rax
+  mov qword [ARG1+TextSegment.num],0x0F
+  mov [ARG2+TextSegment.num],rax
 
   ; 128 is 16 * 8, the offset to the second half of S1's line list
-  mov r15,rcx
+  mov r15,ARG1
   add r15,TextSegment.lines+128
 
-  mov r14,rdx
+  mov r14,ARG2
   add r14,TextSegment.lines
 
  move_line:
@@ -92,9 +107,9 @@ ConcatenateTextSegments:
   ; Calculate how many lines to move
 
   ; r15 is the number of lines in segment 1
-  mov r15,[rcx+TextSegment.num]
+  mov r15,[ARG1+TextSegment.num]
   ; r13 is the number of lines in segment 2
-  mov r13,[rdx+TextSegment.num]
+  mov r13,[ARG2+TextSegment.num]
   mov r11,r15
   add r11,r14
   mov r14,NUM_SEGMENT_LINES
@@ -110,16 +125,16 @@ ConcatenateTextSegments:
  concat_move_lines:
  
  ; Update line counts.
-  sub qword [rdx+TextSegment.num],r13
-  add qword [rcx+TextSegment.num],r13
+  sub qword [ARG2+TextSegment.num],r13
+  add qword [ARG1+TextSegment.num],r13
   ; Make r15 the first line to move in Segment 1
   shl r15,3
   add r15,TextSegment.lines
-  add r15,rcx
+  add r15,ARG1
   ; Make r14 the first line to move in Segment 1
   shl r14,3
   add r14,TextSegment.lines
-  add r15,rcx
+  add r15,ARG1
  concat_next_line:
   ; Move the lines.
   mov r11,[r14]
@@ -131,6 +146,6 @@ ConcatenateTextSegments:
   dec r13
   jnz concat_next_line
   
-  mov rax,[rdx+TextSegment.num]
+  mov rax,[ARG2+TextSegment.num]
   ret
  ; return
