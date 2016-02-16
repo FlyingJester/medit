@@ -96,46 +96,48 @@ SplitTextSegment:
 ConcatenateTextSegments:
   ; Calculate how many lines to move
 
-  ; r15 is the number of lines in segment 1
-  mov r15,[ARG1+TextSegment.num]
-  ; r13 is the number of lines in segment 2
-  mov r13,[ARG2+TextSegment.num]
-  mov r11,r15
-  add r11,r14
-  mov r14,NUM_SEGMENT_LINES
-  
-  
-  ; r14 also has the number of lines in segment 2
-  ; mov r14,r13
-  sub r11,r14
+  ; r8 is the number of lines in segment 1
+  mov r8,[ARG1+TextSegment.num]
+  ; r9 is the number of lines in segment 2
+  mov r9,[ARG2+TextSegment.num]
+  mov r11,r8
+  add r11,r9 
+
+  mov r10, r9
+  ; r11 now equals (Seg1.num+Seg2.num) - NumSegments.
+  sub r11,NUM_SEGMENT_LINES 
   ; If we can just move all lines, just move them.
   jle concat_move_lines
-  sub r13,r11
-  ; r13 must have the number of lines to move
+  
+  ; Otherwise, subtract the difference from r10 (segment 2 num lines).
+  sub r10,r11
+  
+  ; r10 must have the number of lines to move
  concat_move_lines:
  
  ; Update line counts.
-  sub qword [ARG2+TextSegment.num],r13
-  add qword [ARG1+TextSegment.num],r13
-  ; Make r15 the first line to move in Segment 1
-  shl r15,3
-  add r15,TextSegment.lines
-  add r15,ARG1
-  ; Make r14 the first line to move in Segment 1
-  shl r14,3
-  add r14,TextSegment.lines
-  add r15,ARG1
+  sub qword [ARG2+TextSegment.num],r10
+  add qword [ARG1+TextSegment.num],r10
+  ; Make r8 the first line to move in Segment 1
+  shl r8,3
+  add r8,TextSegment.lines
+  add r8,ARG1
+  ; Make r9 the first line to move in Segment 2
+  shl r9,3
+  add r9,TextSegment.lines
+  add r9,ARG2
  concat_next_line:
   ; Move the lines.
-  mov r11,[r14]
-  mov qword [r14],0 ; zero out the old line. Just in case :)
-  mov qword [r15],r11
+  mov r11,[r9]
+  mov qword [r9],0 ; zero out the old line. Just in case :)
+  mov qword [r8],r11
   
-  add r14,8
-  add r15,8
-  dec r13
+  add r9,8
+  add r8,8
+  dec r10
   jnz concat_next_line
   
   mov rax,[ARG2+TextSegment.num]
+
   ret
  ; return
