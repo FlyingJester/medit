@@ -66,22 +66,22 @@ SplitTextSegment:
   mov [ARG2+TextSegment.num],rax
 
   ; 128 is 16 * 8, the offset to the second half of S1's line list
-  mov r15,ARG1
-  add r15,TextSegment.lines+128
+  mov r8,ARG1
+  add r8,TextSegment.lines+128
 
-  mov r14,ARG2
-  add r14,TextSegment.lines
+  mov r9,ARG2
+  add r9,TextSegment.lines
 
  move_line:
-  mov r13,[r15]
-  mov [r14],r13
+  mov r11,[r8]
+  mov [r9],r11
 
   dec rax
   cmp rax,0
   je done_transferring
   
-  add r15,8
-  add r14,8
+  add r8,8
+  add r9,8
 
   jmp move_line
 
