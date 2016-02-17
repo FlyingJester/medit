@@ -17,7 +17,10 @@ align 8
 global TextSegmentLineCount
 global TextSegmentStructSize
 global TextSegmentLine
+global TextSegmentAddLine
+global TextSegmentInsertLine
 global SplitTextSegment
+global ConcatenateTextSegments
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 TextSegmentLineCount:
@@ -140,4 +143,65 @@ ConcatenateTextSegments:
   mov rax,[ARG2+TextSegment.num]
 
   ret
- ; return
+;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Returns a 1-indexed position where the line was positioned, or 0 if there
+; is not enough room.
+TextSegmentAddLine:
+  mov rax,[ARG1+TextSegment.num]
+  cmp rax,NUM_SEGMENT_LINES
+  jge add_line_fail
+
+  mov r11,rax
+  shl r11,3
+  add r11,ARG1
+  mov qword [r11],ARG2
+  
+  ; Update the line count. Fortunately, using 1-based indexing, this is also
+  ; our return value.
+  inc rax
+  mov qword [ARG1+TextSegment.num],rax
+  ret
+
+ add_line_fail:
+  mov rax,0
+  ret
+;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Returns a 1-indexed position where the line was positioned, or 0 if there
+; is not enough room.
+; func(struct TextSegment *to, char *line, unsigned at);
+TextSegmentInsertLine:
+  cmp ARG3,(NUM_SEGMENT_LINES-2)
+  jg insert_line_fail
+  
+  ; Don't insert past the end unless they are equal.
+  mov rax,[ARG1+TextSegment.num]
+  mov r9,rax
+
+  ; Turn r9 into a counter
+  sub r9,ARG3
+  jle insert_line_fail
+  
+  add ARG3,rax
+  inc rax
+ insert_line:
+  mov qword [ARG3],ARG2
+  
+ insert_line_move:
+  
+  mov r10,[ARG3]
+  add ARG3,8
+  mov [ARG3],r10
+  
+  dec r9
+  jnz insert_line_move
+  
+  ret
+  
+ insert_line_fail:
+  mov rax,0
+  ret
+;

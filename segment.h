@@ -17,6 +17,12 @@ unsigned ConcatenateTextSegments(struct TextSegment *into, struct TextSegment *o
 unsigned TextSegmentLineCount(const struct TextSegment *);
 unsigned TextSegmentStructSize();
 
+/* Returns a 1-indexed position where the line was positioned, or 0 if there
+ * is not enough room.
+ */
+unsigned TextSegmentAddLine(struct TextSegment *to, char *line);
+unsigned TextSegmentInsertLine(struct TextSegment *to, char *line, unsigned at);
+
 #ifdef __cplusplus
 }
 #endif
