@@ -40,6 +40,9 @@ TextSegmentLine:
   add rax,TextSegment.lines
   shl ARG2,3
   add rax,ARG2
+  
+  mov rax,[rax]
+  
   ret
 ;
 
@@ -156,6 +159,7 @@ TextSegmentAddLine:
   mov r11,rax
   shl r11,3
   add r11,ARG1
+  add r11,TextSegment.lines
   mov qword [r11],ARG2
   
   ; Update the line count. Fortunately, using 1-based indexing, this is also

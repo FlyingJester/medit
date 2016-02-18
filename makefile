@@ -1,7 +1,7 @@
 MERCURY?=mmc
 MFLAGS?=-E --linkage static --mercury-linkage static
 ASM?=yasm
-ASMFLAGS?=-f elf64
+ASMFLAGS?=-f elf64 -dformat=stabs
 CC?=gcc
 LINK?=gcc
 PLATFORM=
@@ -18,13 +18,13 @@ platform_inc: platform_tool
 	./platform_tool platform_autogen.inc
 
 segment: segment.o test_segment.o
-	$(LINK) -o test_segment segment.o test_segment.o -lc
+	$(LINK) -g -o test_segment segment.o test_segment.o -lc
 
 segment.o: segment.s platform.inc platform_inc
 	$(ASM) $(ASMFLAGS) segment.s -o segment.o
 
 test_segment.o: test_segment.c segment.h
-	$(CC) -Os -c test_segment.c -o test_segment.o
+	$(CC) -g -Os -c test_segment.c -o test_segment.o
 
 clean:
 	rm *.o
